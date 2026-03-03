@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Employee {
+  id               Int       @id @default(autoincrement())
+  name             String
+  hourlyCost       Float
+  homeZip          String
+  skillsJson       String    @default("{}")
+  availabilityJson String    @default("{}")
+  notes            String    @default("")
+  flagsJson        String    @default("{}")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  // Relations
+  pairSynergyA  PairSynergy[] @relation("EmployeeA")
+  pairSynergyB  PairSynergy[] @relation("EmployeeB")
+}
+
+model Job {
+  id               Int       @id @default(autoincrement())
+  customerName     String
+  address          String
+  zip              String
+  jobType          String    // interior, exterior, cabinet, trim, fullHouse
+  sizeBand         String    // S, M, L
+  startDate        DateTime
+  dueDate          DateTime
+  constraintsJson  String    @default("{}")
+  notes            String    @default("")
+  status           String    @default("pending") // pending, scheduled, in_progress, completed
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  // Relations
+  outcomes  Outcome[]
+}
+
+model Plan {
+  id        Int      @id @default(autoincrement())
+  weekOf    DateTime
+  itemsJson String   @default("[]")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Outcome {
+  id              Int      @id @default(autoincrement())
+  jobId           Int
+  dateCompleted   DateTime
+  actualHoursJson String   @default("{}")
+  issuesJson      String   @default("[]")
+  notes           String   @default("")
+  createdAt       DateTime @default(now())
+
+  // Relations
+  job Job @relation(fields: [jobId], references: [id])
+}
+
+model PairSynergy {
+  id            Int      @id @default(autoincrement())
+  employeeAId   Int
+  employeeBId   Int
+  synergyScore  Float    @default(0.0)
+  sampleCount   Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  employeeA Employee @relation("EmployeeA", fields: [employeeAId], references: [id])
+  employeeB Employee @relation("EmployeeB", fields: [employeeBId], references: [id])
+
+  @@unique([employeeAId, employeeBId])
+}
